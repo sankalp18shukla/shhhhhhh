@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shhhhhhh AI — silent speech</title>
+  <link rel="icon" type="image/png" href="/static/img/logo.png" />
+  <link rel="apple-touch-icon" href="/static/img/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap" />
+  <link rel="stylesheet" href="/static/app.css" />
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- ============================== SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark"><img src="/static/img/logo.png" alt="Shhhhhhh AI" /></div>
+      <div class="brand-txt">
+        <div class="brand-name">Shhhhhhh AI<svg class="chev" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5"/></svg></div>
+        <div class="brand-sub">Silent speech</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item active" data-page="live">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M3 12c2.4-4.6 5.4-7 9-7s6.6 2.4 9 7c-2.4 4.6-5.4 7-9 7s-6.6-2.4-9-7z"/></svg>
+        Live
+      </button>
+      <button class="nav-item" data-page="memory">
+        <svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-6 6c0 2.2 1.2 3.7 2.5 5 .9.9 1.5 2 1.5 3.2V18h4v-.8c0-1.2.6-2.3 1.5-3.2 1.3-1.3 2.5-2.8 2.5-5a6 6 0 0 0-6-6z"/><path d="M10 21h4"/></svg>
+        Voice Memory
+      </button>
+      <button class="nav-item" data-page="settings">
+        <svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+        Settings
+      </button>
+    </nav>
+
+    <div class="side-foot">
+      <div class="engine-card">
+        <div class="engine-card-title">Engines</div>
+        <div class="engine-list" id="engineList">
+          <div class="engine-row" data-k="lip"><span class="dot"></span><span class="lbl">Lip reading</span><span class="val">—</span></div>
+          <div class="engine-row" data-k="clean"><span class="dot"></span><span class="lbl">AI correction</span><span class="val">—</span></div>
+          <div class="engine-row" data-k="voice"><span class="dot"></span><span class="lbl">Voice</span><span class="val">—</span></div>
+          <div class="engine-row" data-k="mem"><span class="dot"></span><span class="lbl">Voice Memory</span><span class="val">—</span></div>
+        </div>
+      </div>
+      <button class="side-row" id="presentBtn">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
+        <span>Presentation mode</span>
+        <svg class="arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ============================== MAIN -->
+  <main class="main">
+
+    <!-- ---------------- LIVE -->
+    <section class="page active" id="page-live">
+      <header class="page-head">
+        <div>
+          <h1>Live</h1>
+          <p class="sub">Mouth a sentence silently. Shhhhhhh AI reads your lips and speaks for you.</p>
+        </div>
+        <div class="head-actions">
+          <div class="segmented" id="modeSeg" data-setting="mode">
+            <button data-v="smart">Smart</button><button data-v="live">Live read</button><button data-v="memory">Memory</button>
+          </div>
+          <div class="segmented" id="captureSeg" data-setting="capture_mode">
+            <button data-v="hold">Hold to talk</button><button data-v="auto">Hands-free</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="live-grid">
+        <div class="cam-card" id="camCard">
+          <video id="video" playsinline muted autoplay></video>
+          <canvas id="overlay"></canvas>
+          <div class="cam-top">
+            <div class="pill glass" id="camStatus"><span class="pulse"></span><span class="txt">Starting camera…</span></div>
+            <div class="mouth-inset glass"><canvas id="mouthCanvas" width="132" height="88"></canvas><span>Mouth</span></div>
+          </div>
+          <div class="cam-msg hidden" id="camMsg"></div>
+          <div class="cam-bottom">
+            <div class="meter"><div id="meterBar"></div></div>
+            <button class="rec-btn" id="recBtn" aria-label="Hold to speak">
+              <span class="rec-ring"></span><span class="rec-core"></span>
+            </button>
+            <div class="rec-hint" id="recHint">Hold <kbd>Space</kbd> and mouth your sentence</div>
+          </div>
+          <div class="reading-bar hidden" id="readingBar"><span></span></div>
+        </div>
+
+        <div class="transcript">
+          <div class="hero-card" id="heroCard">
+            <div class="hero-label">Latest</div>
+            <div class="hero-text placeholder" id="heroText">Your words will appear here.</div>
+            <div class="hero-raw" id="heroRaw"></div>
+            <div class="chips" id="heroChips"></div>
+            <div class="hero-actions hidden" id="heroActions">
+              <button class="btn small" id="speakAgain"><svg viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6L8 10H4z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg>Speak</button>
+              <button class="btn small" id="editBtn"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></svg>Edit</button>
+              <button class="btn small primary" id="learnBtn"><svg viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></svg>Save to Voice Memory</button>
+            </div>
+          </div>
+          <div class="history-head">History <button class="link" id="clearHist">Clear</button></div>
+          <div class="history" id="history"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------- MEMORY -->
+    <section class="page" id="page-memory">
+      <header class="page-head">
+        <div>
+          <h1>Personal Voice Memory</h1>
+          <p class="sub">Teach Shhhhhhh AI how <em>you</em> say the things you say most — in English, Hindi, or both. It keeps learning every time you confirm a result.</p>
+        </div>
+        <div class="head-actions">
+          <button class="btn" id="starterBtn">Add starter phrases</button>
+          <button class="btn primary" id="healthBtn">Check memory health</button>
+        </div>
+      </header>
+
+      <div class="stats">
+        <div class="stat"><div class="stat-v" id="stPhrases">0</div><div class="stat-l">Phrases</div></div>
+        <div class="stat"><div class="stat-v" id="stSamples">0</div><div class="stat-l">Samples</div></div>
+        <div class="stat"><div class="stat-v" id="stHealth">—</div><div class="stat-l">Memory health</div></div>
+        <div class="stat"><div class="stat-v" id="stLangs">—</div><div class="stat-l">Languages</div></div>
+      </div>
+
+      <div class="table-card">
+        <div class="new-row">
+          <span class="plus">+</span>
+          <input id="newPhrase" placeholder="Type a new phrase in English or हिन्दी and press Enter…" />
+          <input id="newHint" class="hint-in" placeholder="Pronunciation hint (optional)" />
+        </div>
+        <div class="table-head"><span>Phrase</span><span>Language</span><span>Samples</span><span>Accuracy</span><span></span></div>
+        <div id="phraseList"></div>
+        <div class="empty hidden" id="memEmpty">No phrases yet. Add one above, or start with the starter set.</div>
+      </div>
+    </section>
+
+    <!-- ---------------- SETTINGS -->
+    <section class="page" id="page-settings">
+      <header class="page-head">
+        <div>
+          <h1>Settings</h1>
+          <p class="sub">Every engine can be switched instantly, and each one falls back automatically if it fails.</p>
+        </div>
+      </header>
+
+      <div class="settings-grid">
+        <div class="group">
+          <div class="group-title">Lip reading model</div>
+          <div class="row"><div class="row-l"><b>Engine</b><span>Where the open-vocabulary model runs</span></div>
+            <div class="segmented" data-setting="vsr_engine"><button data-v="local">This Mac</button><button data-v="colab">Colab GPU</button></div></div>
+          <div class="row"><div class="row-l"><b>This Mac</b><span id="localDetail">—</span></div><div class="row-r"><span class="dot" id="localDot"></span><button class="btn small" data-test="local">Check</button></div></div>
+          <div class="row"><div class="row-l"><b>Colab URL</b><span id="colabDetail">Paste the link the Colab notebook prints</span></div>
+            <div class="row-r grow"><input class="field" data-setting="colab_url" placeholder="https://xxxx.trycloudflare.com" /><span class="dot" id="colabDot"></span><button class="btn small" data-test="colab">Test</button></div></div>
+          <div class="row"><div class="row-l"><b>Speed vs accuracy</b><span>Beam search width</span></div>
+            <div class="segmented" data-setting="vsr_beam" data-num="1"><button data-v="5">Fast</button><button data-v="20">Balanced</button><button data-v="40">Best</button></div></div>
+          <div class="row"><div class="row-l"><b>Processor</b><span>Apple GPU is faster but experimental</span></div>
+            <div class="segmented" data-setting="vsr_device"><button data-v="cpu">CPU</button><button data-v="mps">Apple GPU</button></div></div>
+          <div class="row"><div class="row-l"><b>Auto-switch on failure</b><span>Use the other engine if one fails</span></div><label class="switch"><input type="checkbox" data-setting="vsr_fallback" /><span></span></label></div>
+        </div>
+
+        <div class="group">
+          <div class="group-title">Understanding</div>
+          <div class="row"><div class="row-l"><b>Mode</b><span id="modeDesc">Voice Memory first, then live lip reading</span></div>
+            <div class="segmented" data-setting="mode"><button data-v="smart">Smart</button><button data-v="live">Live read</button><button data-v="memory">Memory</button></div></div>
+          <div class="row"><div class="row-l"><b>Memory strictness</b><span>Higher = only very confident matches</span></div>
+            <div class="row-r"><input type="range" min="0" max="1" step="0.05" data-setting="memory_strictness" /><span class="range-v" id="strictV"></span></div></div>
+        </div>
+
+        <div class="group">
+          <div class="group-title">AI correction</div>
+          <div class="row"><div class="row-l"><b>Engine</b><span>Fixes look-alike words from the lip model</span></div>
+            <div class="segmented" data-setting="cleanup_engine"><button data-v="claude">Claude</button><button data-v="openai">OpenAI</button><button data-v="sarvam">Sarvam</button><button data-v="off">Off</button></div></div>
+          <div class="row"><div class="row-l"><b>Claude key</b><span>Model <input class="field mini" data-setting="claude_model" /></span></div>
+            <div class="row-r grow"><input class="field" type="password" data-setting="anthropic_api_key" placeholder="sk-ant-…" /><button class="btn small" data-test="claude">Test</button></div></div>
+          <div class="row"><div class="row-l"><b>OpenAI key</b><span>Model <input class="field mini" data-setting="openai_model" /></span></div>
+            <div class="row-r grow"><input class="field" type="password" data-setting="openai_api_key" placeholder="sk-…" /><button class="btn small" data-test="openai">Test</button></div></div>
+          <div class="row"><div class="row-l"><b>Sarvam key</b><span>Model <input class="field mini" data-setting="sarvam_model" /></span></div>
+            <div class="row-r grow"><input class="field" type="password" data-setting="sarvam_api_key" placeholder="From indus.sarvam.ai" /><button class="btn small" data-test="sarvam">Test</button></div></div>
+          <div class="row col"><div class="row-l"><b>Context</b><span>Tell the AI what you're usually saying — it corrects much better</span></div>
+            <textarea class="field area" data-setting="context" rows="2"></textarea></div>
+          <div class="row col"><div class="row-l"><b>Important words</b><span>Names and terms you say a lot, separated by commas. The AI turns look-alike misreadings back into these</span></div>
+            <textarea class="field area" data-setting="vocabulary" rows="2"></textarea></div>
+          <div class="row"><div class="row-l"><b>Auto-switch on failure</b><span>Claude → OpenAI → Sarvam, then a basic tidy-up</span></div><label class="switch"><input type="checkbox" data-setting="cleanup_fallback" /><span></span></label></div>
+        </div>
+
+        <div class="group">
+          <div class="group-title">Voice</div>
+          <div class="row"><div class="row-l"><b>Engine</b><span>Speaks results aloud in English or Hindi</span></div>
+            <div class="segmented" data-setting="voice_engine"><button data-v="sarvam">Sarvam</button><button data-v="mac">Mac</button><button data-v="browser">Browser</button><button data-v="off">Off</button></div></div>
+          <div class="row"><div class="row-l"><b>Sarvam voice</b><span>Bulbul v3 speaker</span></div>
+            <select class="field" data-setting="sarvam_speaker">
+              <option>shubh</option><option>priya</option><option>ritu</option><option>neha</option><option>rahul</option><option>pooja</option><option>rohan</option><option>simran</option><option>kavya</option><option>amit</option><option>dev</option><option>ishita</option><option>shreya</option><option>aditya</option>
+            </select></div>
+          <div class="row"><div class="row-l"><b>Speak automatically</b><span>Say every result out loud</span></div><label class="switch"><input type="checkbox" data-setting="speak_automatically" /><span></span></label></div>
+          <div class="row"><div class="row-l"><b>Auto-switch on failure</b><span>Sarvam → Mac → Browser</span></div><label class="switch"><input type="checkbox" data-setting="voice_fallback" /><span></span></label></div>
+          <div class="row"><div class="row-l"><b>Try it</b><span id="voiceDetail">Plays a short test sentence</span></div><button class="btn small" data-test="voice">Test voice</button></div>
+        </div>
+
+        <div class="group">
+          <div class="group-title">Capture &amp; data</div>
+          <div class="row"><div class="row-l"><b>Capture</b><span>Hold Space, or detect speech automatically</span></div>
+            <div class="segmented" data-setting="capture_mode"><button data-v="hold">Hold to talk</button><button data-v="auto">Hands-free</button></div></div>
+          <div class="row"><div class="row-l"><b>Keep training clips</b><span>Builds your own labelled dataset for fine-tuning a model later</span></div><label class="switch"><input type="checkbox" data-setting="save_training_clips" /><span></span></label></div>
+          <div class="row"><div class="row-l"><b>Erase Voice Memory</b><span>Deletes every phrase and sample</span></div><button class="btn small danger" id="eraseBtn">Erase</button></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ============================== TRAIN SHEET -->
+<div class="sheet-backdrop hidden" id="trainSheet">
+  <div class="sheet">
+    <button class="sheet-close" id="trainClose" aria-label="Close">×</button>
+    <div class="train-grid">
+      <div class="train-cam"><canvas id="trainCam"></canvas><div class="train-cam-label">You</div></div>
+      <div class="train-main">
+        <div class="train-step" id="trainStep">Sample 1 of 6</div>
+        <div class="train-phrase" id="trainPhrase">—</div>
+        <div class="train-hint" id="trainHint"></div>
+        <div class="countdown" id="countdown">
+          <svg viewBox="0 0 120 120"><circle class="cd-track" cx="60" cy="60" r="52"/><circle class="cd-prog" id="cdProg" cx="60" cy="60" r="52"/></svg>
+          <div class="cd-num" id="cdNum">Ready</div>
+        </div>
+        <div class="train-dots" id="trainDots"></div>
+        <div class="train-actions">
+          <button class="btn" id="trainUndo">Undo last</button>
+          <button class="btn primary" id="trainGo">Start</button>
+        </div>
+        <div class="train-tip">Press Record, then mouth the phrase clearly, the same way each time. Recording stops by itself when your lips go still.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="btn exit-present" id="exitPresent">Exit presentation</button>
+<div class="toasts" id="toasts"></div>
+
+<script type="module" src="/static/app.js"></script>
+</body>
+</html>

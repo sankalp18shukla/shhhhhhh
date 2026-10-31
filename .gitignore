@@ -1,0 +1,18 @@
+# secrets
+.env
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# downloaded by setup.sh
+vendor/
+static/vendor/
+static/models/
+
+# local runtime data (clips, memory, settings)
+data/
+
+.DS_Store
