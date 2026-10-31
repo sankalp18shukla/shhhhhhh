@@ -1,0 +1,9 @@
+# Extra packages for the on-device lip-reading model (Mac only; too big for Vercel).
+-r requirements.txt
+opencv-python-headless>=4.8
+scikit-image>=0.21
+scipy>=1.10
+six>=1.16
+packaging>=23
+setuptools>=68
+torch>=2.2

@@ -7,7 +7,7 @@ import threading
 
 DEFAULTS = {
     # Lip reading (open-vocabulary English model)
-    "vsr_engine": "local",          # local | colab
+    "vsr_engine": "colab" if os.environ.get("VERCEL") else "local",  # local | colab (no local model on Vercel)
     "vsr_fallback": True,           # if the chosen engine fails, try the other one
     "colab_url": "",
     "vsr_beam": 20,                 # 5 = fastest, 40 = most accurate
@@ -36,7 +36,7 @@ DEFAULTS = {
 
     # Capture
     "capture_mode": "hold",         # hold (Space / button) | auto (hands-free)
-    "save_training_clips": True,    # keeps video clips so you can fine-tune a model later
+    "save_training_clips": not os.environ.get("VERCEL"),  # keeps video clips so you can fine-tune a model later
 
     # Secrets (never sent back to the browser in full)
     "anthropic_api_key": "",

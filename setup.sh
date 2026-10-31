@@ -16,7 +16,7 @@ if ! command -v uv >/dev/null 2>&1; then
   export PATH="$HOME/.local/bin:$PATH"
 fi
 [ -d .venv ] || uv venv --python 3.11 .venv
-uv pip install --python .venv/bin/python -r requirements.txt
+uv pip install --python .venv/bin/python -r requirements-local.txt
 
 say_step "2/5  Lip-reading model code (Auto-AVSR, packaged by Chaplin)"
 mkdir -p vendor

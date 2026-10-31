@@ -1,0 +1,9 @@
+.env
+.venv
+vendor
+data
+tests
+tools
+colab
+.pytest_cache
+**/__pycache__

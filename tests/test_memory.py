@@ -57,3 +57,14 @@ def test_learn_and_undo_and_validation():
 def test_empty_memory():
     m = VoiceMemory(os.path.join(tempfile.mkdtemp(), "x.json"))
     assert m.match([[0.0] * D] * 20)["accepted"] is False
+
+def test_switched_off_phrase_is_never_matched():
+    m, temps = make_memory(4, 4)
+    pid, (text, tmpl) = next(iter(temps.items()))
+    assert m.match(instance(tmpl, 4242), 0.5)["text"] == text
+    m.set_active(pid, False)
+    assert m.match(instance(tmpl, 4242), 0.5)["text"] != text
+    assert not [p for p in VoiceMemory(m.path).summary()["phrases"] if p["id"] == pid][0]["active"]
+    for other in temps:
+        m.set_active(other, False)
+    assert m.match(instance(tmpl, 4242))["reason"] == "memory is empty"

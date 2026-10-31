@@ -125,7 +125,7 @@ class VoiceMemory:
             phrases = [{
                 "id": p["id"], "text": p["text"], "hint": p.get("hint", ""),
                 "lang": p.get("lang", "en"), "samples": len(p["samples"]),
-                "created": p.get("created"),
+                "created": p.get("created"), "active": p.get("active", True),
             } for p in self.data["phrases"]]
             return {"phrases": phrases,
                     "total_samples": sum(p["samples"] for p in phrases)}
@@ -165,6 +165,12 @@ class VoiceMemory:
         with self.lock:
             self.data["phrases"] = [p for p in self.data["phrases"] if p["id"] != pid]
             self._invalidate()
+            self.save()
+
+    def set_active(self, pid: str, active: bool):
+        """Switched-off phrases keep their samples but are never matched."""
+        with self.lock:
+            self.get(pid)["active"] = bool(active)
             self.save()
 
     def add_sample(self, pid: str, features: List[List[float]], source: str = "train") -> int:
@@ -218,6 +224,11 @@ class VoiceMemory:
             for s in p["samples"]:
                 yield p, s
 
+    def _active_samples(self):
+        for p, s in self._all_samples():
+            if p.get("active", True):
+                yield p, s
+
     def _normaliser(self):
         if self._norm is None:
             rows = [self._raw_processed(np.asarray(s["f"])) for _, s in self._all_samples()]
@@ -264,7 +275,7 @@ class VoiceMemory:
     # --------------------------------------------------------------- matching
     def _phrase_scores(self, emb, length, exclude_sample: Optional[str] = None, top_k: int = 36):
         """Cheap linear pre-filter over every sample, then DTW on the closest `top_k`."""
-        items = [(p, s, self._sample_embed(s)) for p, s in self._all_samples() if s["id"] != exclude_sample]
+        items = [(p, s, self._sample_embed(s)) for p, s in self._active_samples() if s["id"] != exclude_sample]
         items = [it for it in items if it[2].shape == emb.shape]
         if not items:
             return []
@@ -303,7 +314,7 @@ class VoiceMemory:
     def match(self, features, strictness: float = 0.5) -> Dict:
         """strictness 0..1  (0 = accept almost anything, 1 = only very sure matches)."""
         with self.lock:
-            if not any(p["samples"] for p in self.data["phrases"]):
+            if not any(True for _ in self._active_samples()):
                 return {"accepted": False, "reason": "memory is empty"}
             arr = self._validate(features)
             emb = self._embed(arr)
@@ -336,6 +347,10 @@ class VoiceMemory:
             per, total, correct, rejected = [], 0, 0, 0
             for p in self.data["phrases"]:
                 n_ok = n = n_rej = 0
+                if not p.get("active", True):
+                    per.append({"id": p["id"], "text": p["text"], "samples": len(p["samples"]),
+                                "accuracy": None, "note": "switched off"})
+                    continue
                 if len(p["samples"]) < 2:
                     per.append({"id": p["id"], "text": p["text"], "samples": len(p["samples"]),
                                 "accuracy": None, "note": "needs 2+ samples"})

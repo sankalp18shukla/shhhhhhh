@@ -221,10 +221,11 @@ input[type="range"] { accent-color: var(--black); width: 160px; }
 .new-row input { flex: 1; border: 0; outline: 0; background: transparent; font: inherit; font-size: 14.5px; color: var(--text); }
 .new-row input::placeholder { color: var(--text-3); }
 .new-row input.hint-in { flex: 0 0 240px; font-size: 13.5px; color: var(--text-2); border-left: 1px solid var(--hair); padding-left: 12px; }
-.table-head, .p-row { display: grid; grid-template-columns: minmax(0, 1fr) 110px 170px 110px 150px; align-items: center; gap: 12px; padding: 0 20px; }
+.table-head, .p-row { display: grid; grid-template-columns: minmax(0, 1fr) 110px 170px 110px 210px; align-items: center; gap: 12px; padding: 0 20px; }
 .table-head { height: 40px; font-size: 13px; color: var(--text-2); background: var(--rail); border-bottom: 1px solid var(--hair); }
 .p-row { min-height: 58px; border-bottom: 1px solid var(--hair-2); transition: background .12s; }
 .p-row:hover { background: var(--rail); }
+.p-row.off .p-text, .p-row.off .p-hint, .p-row.off .sdots { opacity: .4; }
 .p-row:last-child { border-bottom: 0; }
 .p-text { font-weight: 500; font-size: 14.5px; }
 .p-text.hi { font-family: var(--font-hi); }

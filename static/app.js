@@ -626,17 +626,22 @@ async function refreshMemory() {
     const accHtml = acc == null ? `<span class="acc none">${p.samples < 2 ? "train" : "—"}</span>`
       : `<span class="acc ${acc >= 0.85 ? "good" : acc >= 0.6 ? "mid" : "bad"}">${Math.round(acc * 100)}%</span>`;
     const dots = Array.from({ length: 6 }, (_, i) => `<i class="${i < p.samples ? "f" : ""}"></i>`).join("");
-    return `<div class="p-row" data-id="${p.id}">
+    return `<div class="p-row${p.active ? "" : " off"}" data-id="${p.id}">
       <div><div class="p-text ${p.lang}">${esc(p.text)}</div>${p.hint ? `<div class="p-hint">${esc(p.hint)}</div>` : ""}</div>
       <div><span class="lang ${p.lang}">${p.lang === "hi" ? "हिन्दी" : "English"}</span></div>
       <div class="sdots">${dots}<small>${p.samples}</small></div>
       <div>${accHtml}</div>
       <div class="p-actions">
+        <button class="btn small" data-active="${p.id}" data-on="${p.active ? 1 : 0}" title="Off phrases are kept but never matched">${p.active ? "On" : "Off"}</button>
         <button class="btn small ${p.samples < 3 ? "primary" : ""}" data-train="${p.id}">${p.samples ? "Train more" : "Train"}</button>
         <button class="icon-btn" data-del="${p.id}" title="Delete"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/></svg></button>
       </div></div>`;
   }).join("");
   $$("[data-train]").forEach((b) => (b.onclick = () => openTrain(b.dataset.train)));
+  $$("[data-active]").forEach((b) => (b.onclick = async () => {
+    await api(`/api/memory/phrases/${b.dataset.active}/active`, { body: { active: b.dataset.on !== "1" } });
+    refreshMemory();
+  }));
   $$("[data-del]").forEach((b) => (b.onclick = async () => {
     if (b.dataset.armed) { await api(`/api/memory/phrases/${b.dataset.del}`, { method: "DELETE" }); refreshMemory(); return; }
     b.dataset.armed = "1"; b.style.color = "var(--red)"; b.title = "Click again to delete";

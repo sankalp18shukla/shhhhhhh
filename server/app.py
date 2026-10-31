@@ -20,7 +20,9 @@ from .memory import VoiceMemory
 from .settings import Settings, load_dotenv
 
 ROOT = engines.ROOT
-DATA = os.environ.get("MAUN_DATA_DIR", os.path.join(ROOT, "data"))
+ON_VERCEL = bool(os.environ.get("VERCEL"))
+# Vercel's filesystem is read-only except /tmp (wiped between cold starts)
+DATA = os.environ.get("MAUN_DATA_DIR", "/tmp/maun" if ON_VERCEL else os.path.join(ROOT, "data"))
 load_dotenv(os.path.join(ROOT, ".env"))
 
 settings = Settings(os.path.join(DATA, "settings.json"))
@@ -67,6 +69,10 @@ class PhraseIn(BaseModel):
 class LearnIn(BaseModel):
     text: str
     features: List[List[float]]
+
+
+class ActiveIn(BaseModel):
+    active: bool
 
 
 class SpeakIn(BaseModel):
@@ -281,6 +287,16 @@ def memory_starter():
 def memory_delete(pid: str):
     memory.delete_phrase(pid)
     return {"ok": True}
+
+
+@app.post("/api/memory/phrases/{pid}/active")
+def memory_active(pid: str, a: ActiveIn):
+    try:
+        memory.set_active(pid, a.active)
+    except KeyError:
+        raise HTTPException(404, "phrase not found")
+    threading.Thread(target=memory.warm, daemon=True).start()
+    return {"id": pid, "active": a.active}
 
 
 @app.post("/api/memory/phrases/{pid}/samples")
